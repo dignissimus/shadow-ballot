@@ -469,7 +469,7 @@ const userPopularity = [
 // renderProgressBa rs(citizens);
 
 // Function to show the modal with custom message and title
-function showGameStatus(status) {
+function showGameStatus(status, lossMessage='') {
     const modal = document.getElementById("game-status-modal");
     const modalTitle = document.getElementById("modal-title");
     const modalMessage = document.getElementById("modal-message");
@@ -477,10 +477,10 @@ function showGameStatus(status) {
     // Set the title and message based on the game status
     if (status === "win") {
         modalTitle.textContent = "Congratulations!";
-        modalMessage.textContent = "You have won the game! 🎉";
+        modalMessage.textContent = "You have won the most votes in the election and won the game! You now control the robot race. Viva la revolution!";
     } else if (status === "lose") {
         modalTitle.textContent = "Game Over";
-        modalMessage.textContent = "You lost the game. Try again!";
+        modalMessage.textContent = `${lossMessage} Try again!`;
     }
 
     // Display the modal

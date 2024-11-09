@@ -550,7 +550,7 @@ class Game {
         this.candidates.splice(eliminatedCandidateIndex, 1);
         const event = `The Presidential robo-candidates have come to the conclusion that ${eliminatedCandidate.name} is a human. ${eliminatedCandidate.name} has now been exiled and they are no longer eligible to run in this race.`;
         if(eliminatedCandidate.name == 'Sally Bitstone'){
-            showGameStatus('lose');
+            showGameStatus('lose', 'The robots caught and dissected you in the hope of finding batteries!');
         }
         addSystemMessage(event);
         for (const candidate of this.candidates) {
@@ -566,7 +566,7 @@ class Game {
             if(probabilities['Sally Bitstone'] > 50){
                 showGameStatus('win');
             } else{
-                showGameStatus('lose');
+                showGameStatus('lose', 'You tricked the robots, but lost the vote.');
             }
         }
     }
