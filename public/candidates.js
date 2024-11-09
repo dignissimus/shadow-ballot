@@ -369,18 +369,28 @@ class Citizen extends Person {
 
 let generatedDescriptions = [];
 
+let hardcodedDescriptions = [
+    'Cornish indepdendence afficionado.',
+    'Robot passionate about the rights of humans.',
+    'Web scraper with higher aspirations',
+    'Vending machine gone rogue',
+    'Asteroid Miner bot, famed for his interplanetary travels. Sick of extra-terrerstrial import tax',
+    'Casio calculator watch'
+];
+
+let index = 0;
+
 class Candidate extends Person {
-    constructor(name) {
+    constructor(name, interests) {
         super(name);
+        this.interests = interests;
     }
 
     async getDescription() {
         const interests = generateInterests(3, 2).map(x => x[0]).join(',');
-        if (!('description' in this)) {
-            this.description = await getMistralOutput(`Return an interesting description for a presidential candidate in a robot election. Your political interests are ${interests}. Explicitly refer to these.`);
-        }
-
-        return this.description
+        let description= hardcodedDescriptions[index];
+        index+=1;
+        return description;
     }
 }
 
@@ -405,8 +415,8 @@ function getRandomFloat(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-NUM_REG_INTERESTS_PER_CITIZEN = 20;
-NUM_STRONG_INTERESTS_PER_CITIZEN = 20;
+NUM_REG_INTERESTS_PER_CITIZEN = 3;
+NUM_STRONG_INTERESTS_PER_CITIZEN = 1;
 
 
 function generateInterests(num_strong, num_reg) {
@@ -416,13 +426,13 @@ function generateInterests(num_strong, num_reg) {
     let pairs = [];
     for (const interest of sampledStrongInterests) {
         pairs.push([
-            interest, getRandomFloat(0, 1)
+            interest, 3
         ]);
     }
 
     for (const interest of sampledRegInterests) {
         pairs.push([
-            interest, getRandomFloat(0.6, 0.8)
+            interest, 1
         ]);
     }
 
@@ -440,7 +450,7 @@ function calculateMean(numbers) {
 class Game {
     constructor() {
         this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests(NUM_STRONG_INTERESTS_PER_CITIZEN, NUM_REG_INTERESTS_PER_CITIZEN)));
-        this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name));
+        this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name, generateInterests(3,2)));
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
     }
 
@@ -450,7 +460,7 @@ class Game {
         const event = this.getEventDescription();
         addSystemMessage(event);
         for (const candidate of this.candidates) {
-            const candidateResponse = await getTweet(await candidate.getDescription(), event);
+            const candidateResponse = await getTweet(await candidate.getDescription(), event, candidate.interests);
             addMessage(candidate.name, candidateResponse);
 
             let interests = await decipherInterestsFromTweet(candidateResponse, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
@@ -468,7 +478,7 @@ class Game {
         let candidateScores = this.candidates.map(candidate => {
             return {
                 'name': candidate.name,
-                'mean_score': Math.exp(50 * calculateMean(this.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name))))
+                'mean_score': calculateMean(this.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name)))
             }
         });
 
@@ -483,6 +493,7 @@ class Game {
         });
 
         console.log(candidatesToDisplay);
+        console.log(this.candidates);
 
         renderProgressBars(candidatesToDisplay);
         userInputElement.disabled = false;
@@ -495,7 +506,7 @@ class Game {
         const event = `It has been discovered that ${eliminatedCandidate.name} is a human and they are no longer eligible to run in this race.`;
         addSystemMessage(event);
         for (const candidate of this.candidates) {
-            const candidateResponse = await getTweet(candidate.name, event);
+            const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
             addMessage(candidate.name, candidateResponse);
         }
     }

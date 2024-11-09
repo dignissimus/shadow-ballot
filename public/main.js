@@ -19,8 +19,9 @@ let messages = [
 let themeSet = false;
 let userScrolling = false;
 
-async function getTweet(character, event) {
-    const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 120 characters or less responding to the event, it must be heavily dependent on your profile.`;
+async function getTweet(character, event, interests) {
+    let interestsString  = interests.join(',');
+    const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 120 characters or less responding to the event, it must be heavily dependent on your profile. Refer to your interests (${interestsString}) and STAY IN CHARACTER (${character})`;
     return getMistralOutput(prompt);
 }
 
