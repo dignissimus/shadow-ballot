@@ -547,6 +547,16 @@ class Game {
                 await addMessage(candidate.name, candidateResponse, this, candidate.getDescription(), undefined, candidate.colour);    
             }
         }
+
+        if(this.candidates.length == 2){
+            let probabilities = getCandidateProbabilities();
+            console.log(probabilities);
+            if(probabilities['Sally Bitstone'] > 50){
+                showGameStatus('win');
+            } else{
+                showGameStatus('lose');
+            }
+        }
     }
 
     getEventDescription() {

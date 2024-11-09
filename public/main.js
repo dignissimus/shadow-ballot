@@ -210,6 +210,28 @@ async function sendUserMessage() {
     await window.currentGame.stepTweet();
 }
 
+
+function getCandidateProbabilities(){
+    let game = window.currentGame;
+
+    let candidateScores = game.candidates.map(candidate => {
+        return {
+            'name': candidate.name,
+            'mean_score': calculateMean(game.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name)))
+        }
+    });
+
+    let totalVote = candidateScores.reduce((acc, candidate) => acc + candidate['mean_score'], 0);
+    let candidatesToDisplay = candidateScores.map(candidate => {
+        return {
+            'name': candidate['name'],
+            'percentage': Math.round((candidate['mean_score'] / totalVote) * 100)
+        };
+    });
+
+    return candidatesToDisplay;
+}
+
 async function addMessage(name, message, game = undefined, description = "", is_bitizen = false, color = 'gray') {
     // Get the messages container
     const messagesContainer = document.getElementById('messages');
@@ -259,24 +281,7 @@ async function addMessage(name, message, game = undefined, description = "", is_
                 citizen.updateAverageProbability(interests, name);
             }
 
-            let candidateScores = game.candidates.map(candidate => {
-                return {
-                    'name': candidate.name,
-                    'mean_score': calculateMean(game.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name)))
-                }
-            });
-
-            let totalVote = candidateScores.reduce((acc, candidate) => acc + candidate['mean_score'], 0);
-            let candidatesToDisplay = candidateScores.map(candidate => {
-                return {
-                    'name': candidate['name'],
-                    'percentage': Math.round((candidate['mean_score'] / totalVote) * 100)
-                };
-            });
-
-            console.log(candidatesToDisplay);
-            console.log(game.candidates);
-
+            candidatesToDisplay = getCandidateProbabilities();
             renderProgressBars(candidatesToDisplay);
         }
     }
