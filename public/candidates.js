@@ -486,11 +486,14 @@ class Game {
                 await addMessage(candidate.name, candidateResponse, this, await candidate.getDescription());
             }
         }
-        sample(this.citizens, 2).map( async (citizen) => {
+        addSystemMessage("The bitizens are discussing on Bitter...");
+        await Promise.all(sample(this.citizens, 2).map( async (citizen) => {
             const citizenComment = await getCitizenTweet(await citizen.getDescription(), event);
             await addMessage(`[BITIZEN] ${citizen.name}`, citizenComment, this, await citizen.getDescription(), true);
             userInputElement.disabled = false;
-        });
+        }));
+
+        addSystemMessage("What do you think about this issue?");
 
         userInputElement.disabled = false;
     }
@@ -499,6 +502,7 @@ class Game {
         const history = this.message_log.join("\n");
         const eliminationVotes = [];
         for (const candidate of this.candidates) {
+            if (candidate.is_player) continue;
             const candidateDescription = await candidate.getDescription();
             const prompt = `You are a robot. Your name is ${candidate.name} and your description is ${candidateDescription}. Use the following hsitory and output the name of the candidate you believe is a Human and provide a one sentence justification and format this as a tweet starting with "I believe X is a human". History: ${history}`;
             const eliminationVote = await getMistralOutput(prompt);
@@ -528,10 +532,11 @@ class Game {
     async stepEliminate() {
         const userInputElement = document.getElementById("user-input");
         userInputElement.disabled = true;
+        addSystemMessage("The Presidential candidates intervene...");
         const eliminatedCandidateIndex = await this.findCandidateToEliminate();
         const eliminatedCandidate = this.candidates[eliminatedCandidateIndex];
         this.candidates.splice(eliminatedCandidateIndex, 1);
-        const event = `It has been discovered that ${eliminatedCandidate.name} is a human and they are no longer eligible to run in this race.`;
+        const event = `The Presidential robo-candidates have come to the conclusion that ${eliminatedCandidate.name} is a human. ${eliminatedCandidate.name} has now been exiled and they are no longer eligible to run in this race.`;
         addSystemMessage(event);
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
