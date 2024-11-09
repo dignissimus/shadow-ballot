@@ -24,6 +24,11 @@ async function getTweet(character, event) {
     return getMistralOutput(prompt);
 }
 
+async function getCitizenTweet(character, event) {
+    const prompt = `You are a citizen with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 120 characters or less responding to the event, it must be heavily dependent on your profile and you must say what your interests are and how a presidential candidate should respond to this event to satisfy your interests.`;
+    return getMistralOutput(prompt);
+}
+
 async function getAllTweets(characters, event) {
     outputs = {};
     for (const character in characters) {
