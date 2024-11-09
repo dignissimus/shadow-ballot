@@ -185,11 +185,10 @@ async function sendUserMessage() {
 
     // Only send the message if it is not empty
     if (messageText) {
-        // Call the function to add the message resembling a tweet
-        await addMessage('You', messageText, window.currentGame);
-
         // Clear the input field after sending the message
         messageInput.value = '';
+        // Call the function to add the message resembling a tweet
+        await addMessage('You', messageText, window.currentGame);
     }
     await window.currentGame.stepEliminate();
     await window.currentGame.stepTweet();
