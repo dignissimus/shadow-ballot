@@ -19,21 +19,21 @@ let messages = [
 let themeSet = false;
 let userScrolling = false;
 
-async function getTweet(character, event){
+async function getTweet(character, event) {
     const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 80 characters or less responding to the event.`;
     return getMistralOutput(prompt);
 }
 
-async function getAllTweets(characters, event){
+async function getAllTweets(characters, event) {
     outputs = {};
-    for(const character in characters){
+    for (const character in characters) {
         outputs[character] = await getTweet(characters[character], event);
     }
 
     return outputs;
 }
 
-async function getMistralOutput(content){
+async function getMistralOutput(content) {
     const data = {
         model: "mistral-small-latest",
         messages: [
@@ -104,11 +104,11 @@ function handleScroll() {
     userScrolling = messageContainer.scrollTop + messageContainer.clientHeight < messageContainer.scrollHeight;
 }
 
-function generateTweet(){
+function generateTweet() {
 
 }
 
-async function getMessages(){
+async function getMessages() {
 
 }
 
@@ -125,7 +125,7 @@ function sendUserMessage() {
     if (messageText) {
         // Call the function to add the message resembling a tweet
         addMessage('User', messageText);
-        
+
         // Clear the input field after sending the message
         messageInput.value = '';
     }
@@ -188,12 +188,78 @@ const characters = {
     'donald': 'ginger man. passionate about cornish independence'
 };
 
-async function runEvent(event){
+async function runEvent(event) {
     const allTweets = await getAllTweets(characters, event);
 
     addSystemMessage(event);
 
-    for(const name in allTweets){
+    for (const name in allTweets) {
         addMessage(name, allTweets[name]);
     }
 }
+function renderProgressBars(citizens) {
+    const container = document.getElementById("progress-tracking");
+
+    // Clear existing progress bars
+    container.innerHTML = '';
+
+    // Define color classes for different progress bars with higher contrast text
+    const colorClasses = [
+        { bg: 'bg-teal-500', text: 'text-teal-900' }, // teal
+        { bg: 'bg-blue-500', text: 'text-blue-900' }, // blue
+        { bg: 'bg-red-500', text: 'text-red-900' },  // red
+        { bg: 'bg-yellow-500', text: 'text-yellow-900' }, // yellow
+        { bg: 'bg-green-500', text: 'text-green-900' },  // green
+        { bg: 'bg-purple-500', text: 'text-purple-900' }, // purple
+    ];
+
+    // Iterate through the citizens and render their progress bars
+    citizens.forEach((citizen, index) => {
+        const { name, percentage } = citizen;
+
+        // Choose a color based on the index or another logic
+        const colorClass = colorClasses[index % colorClasses.length];
+
+        // Create HTML for each citizen's progress bar
+        const progressHTML = `
+            <div class="flex items-center justify-between mb-6">
+                <span class="text-gray-700 font-medium">${name}</span>
+                <div class="w-3/4">
+                    <div class="relative pt-1">
+                        <div class="flex mb-2 items-center justify-between">
+                            <div>
+                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full ${colorClass.text} ${colorClass.bg}">
+                                    ${percentage}%
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <div class="w-full bg-teal-200 rounded-full h-2.5">
+                                <div class="${colorClass.bg} h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Append to the container
+        container.innerHTML += progressHTML;
+    });
+
+    // Scroll to the bottom of the container after content is rendered
+    container.scrollTop = container.scrollHeight;
+}
+
+// Example data to call the render function with
+const citizens = [
+    { name: "John Doe", percentage: 75 },
+    { name: "Jane Smith", percentage: 45 },
+    { name: "Charlie Brown", percentage: 30 },
+    { name: "Lisa White", percentage: 60 },
+    { name: "Tom Green", percentage: 80 }
+];
+
+// Call the function to render the data with animation
+
+renderProgressBars(citizens);
