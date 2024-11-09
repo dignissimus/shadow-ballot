@@ -112,31 +112,6 @@ async function getMessages(){
 
 }
 
-async function sendUserMessage() {
-    const userInput = document.getElementById("user-input").value;
-    if (!userInput.trim()) return;
-
-    displayMessage(userInput, "user");
-    messages.push({ role: "user", content: userInput });
-    document.getElementById("user-input").value = "";
-
-    
-    if (!themeSet) {
-        messages.push({
-            role: "system",
-            content: "Present the user with their first voting challenge. Ask for a campaign theme, outline potential rivals' accusations, and prompt them for their next move. Begin introducing the LLMs that will vote, with some quirky personalities."
-        });
-        themeSet = true;
-    } else {
-        messages.push({
-            role: "system",
-            content: "The user has responded. Analyze their campaign speech and provide feedback. If they need more support from the LLMs, offer another challenge or voting scenario. Include a table showing LLMs' current support levels."
-        });
-    }
-
-    await getOpenAIMessage();
-}
-
 // Add scroll listener to detect when the user scrolls
 document.getElementById("messages").addEventListener("scroll", handleScroll);
 
