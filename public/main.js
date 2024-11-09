@@ -194,6 +194,8 @@ async function sendUserMessage() {
 
     const userInputElement = document.getElementById("user-input");
 
+    addSystemMessage("The bitizens are discussing on Bitter...");
+
     await Promise.all(
         sample(window.currentGame.citizens, 2).map(async (citizen) => {
             const citizenDescription = await citizen.getDescription();
@@ -203,7 +205,6 @@ async function sendUserMessage() {
         })
     );
 
-    addSystemMessage("The bitizens are discussing on Bitter...");
 
     await window.currentGame.stepEliminate();
     await window.currentGame.stepTweet();
