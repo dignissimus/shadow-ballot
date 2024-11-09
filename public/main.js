@@ -19,16 +19,16 @@ let messages = [
 let themeSet = false;
 let userScrolling = false;
 
-async function getTweet(character, event, interests, log=[]) {
-    let interestsString  = interests.join(',');
+async function getTweet(character, event, interests, log = []) {
+    let interestsString = interests.join(',');
 
     const randomNumber = Math.floor(Math.random() * 3) + 1;
 
     const recentTweets = getRecentTweets(log);
     console.log(log, recentTweets);
-    if(recentTweets.length > 0){
+    if (recentTweets.length > 0) {
 
-        const logString = recentTweets.map(logEntry=>`${logEntry.from}: ${logEntry.content}`).join('\n');
+        const logString = recentTweets.map(logEntry => `${logEntry.from}: ${logEntry.content}`).join('\n');
         const prompt = `You are a robot politician with the following profile: ${character}. There is an undercover human on twitter. Attack a random character from the list of recent tweets, accusing them of being a human: ${logString} in less than 100 characters. Be mean.`;
         console.log(prompt);
         return await getMistralOutput(prompt) + '❗❗';
@@ -54,8 +54,8 @@ async function getAllTweets(characters, event) {
 
 async function decipherInterestsFromTweet(tweet, possibleInterests) {
     // Queries Mistral for which of the interests in possibleInterests are present in the tweet
-    const prompt = "This is a tweet from a presidential candidate:\n" 
-        + tweet + 
+    const prompt = "This is a tweet from a presidential candidate:\n"
+        + tweet +
         "\n\nThis is a list of possible interests: " + possibleInterests.join(", ") + ".\n\n"
         + "Give a space separated list of these interests that are present in the tweet.";
     const response = await getMistralOutput(prompt);
@@ -92,7 +92,7 @@ let requestTimestamps = [];
 async function callChatEndpoint(data) {
     const url = "https://api.mistral.ai/v1/chat/completions";
     const now = Date.now();
-    
+
     // Filter timestamps to keep only the ones in the last second
     requestTimestamps = requestTimestamps.filter(timestamp => now - timestamp < 1000);
 
@@ -196,7 +196,7 @@ async function sendUserMessage() {
 }
 
 // Function to create and add the message (tweet) to the messages box
-async function addMessage(name, message, game=undefined, description="", is_bitizen=false) {
+async function addMessage(name, message, game = undefined, description = "", is_bitizen = false) {
     // Get the messages container
     const messagesContainer = document.getElementById('messages');
 
@@ -226,17 +226,17 @@ async function addMessage(name, message, game=undefined, description="", is_biti
     // Scroll to the bottom of the messages container
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    if(game){
-        game.event_log.push(
-            {
-                type: 'tweet',
-                from: name,
-                content: message
-            }
-        );
+    if (game) {
+        if (!is_bitizen) {
+            game.message_log.push(`${name} said "${message}"`);
+            game.event_log.push(
+                {
+                    type: 'tweet',
+                    from: name,
+                    content: message
+                }
+            );
 
-
-        if(!is_bitizen){
             let interests = await decipherInterestsFromTweet(message, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
             console.log(name);
             console.log(interests);
@@ -250,7 +250,7 @@ async function addMessage(name, message, game=undefined, description="", is_biti
                     'mean_score': calculateMean(game.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name)))
                 }
             });
-    
+
             let totalVote = candidateScores.reduce((acc, candidate) => acc + candidate['mean_score'], 0);
             let candidatesToDisplay = candidateScores.map(candidate => {
                 return {
@@ -258,10 +258,10 @@ async function addMessage(name, message, game=undefined, description="", is_biti
                     'percentage': Math.round((candidate['mean_score'] / totalVote) * 100)
                 };
             });
-    
+
             console.log(candidatesToDisplay);
             console.log(game.candidates);
-    
+
             renderProgressBars(candidatesToDisplay);
         }
     }
@@ -269,17 +269,17 @@ async function addMessage(name, message, game=undefined, description="", is_biti
 
 
 function showToast(message, bgColor = 'bg-blue-500') {
-  const toast = document.createElement('div');
-  toast.className = `p-4 w-64 text-white rounded-lg shadow-lg ${bgColor} flex items-center justify-between`;
-  toast.innerHTML = `
+    const toast = document.createElement('div');
+    toast.className = `p-4 w-64 text-white rounded-lg shadow-lg ${bgColor} flex items-center justify-between`;
+    toast.innerHTML = `
     <span>${message}</span>
     <button onclick="this.parentElement.remove()" class="ml-2 text-lg">&times;</button>
   `;
 
-  document.getElementById('toast-container').appendChild(toast);
+    document.getElementById('toast-container').appendChild(toast);
 
-  // Auto-remove toast after 3 seconds
-  setTimeout(() => toast.remove(), 3000);
+    // Auto-remove toast after 3 seconds
+    setTimeout(() => toast.remove(), 3000);
 }
 
 function addSystemMessage(message, game) {
