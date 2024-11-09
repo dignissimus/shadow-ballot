@@ -4,6 +4,7 @@ class Person {
         this.isCandidate = isCandidate; // Flag indicating if the person is a candidate
         this.interests = interests;     // Array to store interests
         this.thoughts = [];
+        this.probabilities = {};  // Dictionary mapping candidate names to { currentProbability, numProbsUsed }
     }
 
     addThought(thought) {
@@ -20,6 +21,45 @@ class Person {
 
     getInterests() {
         return this.interests;
+    }
+
+    // Initialize a candidate in the probabilities dictionary if not present
+    _initializeCandidate(candidate) {
+        if (!(candidate in this.probabilities)) {
+            this.probabilities[candidate] = {
+                currentProbability: 0.5, // Default probability
+                numProbsUsed: 1          // Start with a single probability weight
+            };
+        }
+    }
+
+    updateAverageProbability(inputInterests, candidate) {
+        // Ensure the candidate exists in the probabilities dictionary
+        this._initializeCandidate(candidate);
+
+        // Filter interests that match the input interests
+        const matchingInterests = this.interests.filter(pair => inputInterests.includes(pair[0]));
+
+        // Calculate the total probability of the matched pairs
+        let totalProbability = 0;
+        matchingInterests.forEach(pair => {
+            totalProbability += pair[1];
+        });
+        
+        const newProbsUsed = matchingInterests.length;
+
+        // Update the candidate's probability only if there are matching interests
+        if (newProbsUsed > 0) {
+            const candidateData = this.probabilities[candidate];
+            candidateData.currentProbability = 
+                (candidateData.currentProbability * candidateData.numProbsUsed + totalProbability) / (candidateData.numProbsUsed + newProbsUsed);
+            candidateData.numProbsUsed += newProbsUsed;
+        }
+    }
+
+    // Get the probability for a specific candidate
+    getCandidateProbability(candidate) {
+        return this.probabilities[candidate]?.currentProbability || 0.5;  // Default to 0.5 if candidate is not present
     }
 }
 

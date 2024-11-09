@@ -33,6 +33,25 @@ async function getAllTweets(characters, event) {
     return outputs;
 }
 
+async function decipherInterestsFromTweet(tweet) {
+    // Queries Mistral for which of the interests in possibleInterests are present in the tweet
+    const prompt = "This is a tweet from a presidential candidate:\n" 
+        + tweet + 
+        "\n\nThis is a list of possible interests: " + possibleInterests.join(", ") + ".\n\n"
+        + "Give a space separated list of these interests that are present in the tweet.";
+    const response = await getMistralOutput(prompt);
+
+    // Extract the interests from the response
+    let foundInterests = [];
+    for (let interest of possibleInterests) {
+        if (response.includes(interest)) {
+            foundInterests.push(interest);
+        }
+    }
+
+    return foundInterests;
+}
+
 async function getMistralOutput(content) {
     const data = {
         model: "mistral-small-latest",
