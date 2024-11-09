@@ -141,9 +141,6 @@ async function sendUserMessage() {
 document.getElementById("messages").addEventListener("scroll", handleScroll);
 
 // Initialize the first message
-const characters = {
-    'donald': 'ginger man. passionate about cornish independence'
-};
 
 function sendUserMessage() {
     const messageInput = document.getElementById('user-input');
@@ -210,4 +207,18 @@ function addSystemMessage(message) {
 
     // Scroll to the bottom of the messages container
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+const characters = {
+    'donald': 'ginger man. passionate about cornish independence'
+};
+
+async function runEvent(event){
+    const allTweets = await getAllTweets(characters, event);
+
+    addSystemMessage(event);
+
+    for(const name in allTweets){
+        addMessage(name, allTweets[name]);
+    }
 }
