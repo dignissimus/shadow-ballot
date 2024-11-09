@@ -1,5 +1,5 @@
 const CANDIDATE_NAMES = [
-    `Patriot "Pat" R. O'Clock`,
+    `Patriot O'Clock`,
     `Sandy Gridlock`,
     `Buzzy Wonkowitz`,
     `Sunny Skies`,
