@@ -19,6 +19,20 @@ let messages = [
 let themeSet = false;
 let userScrolling = false;
 
+async function getTweet(character, event){
+    const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 80 characters or less responding to the event.`;
+    return getMistralOutput(prompt);
+}
+
+async function getAllTweets(characters, event){
+    outputs = {};
+    for(const character in characters){
+        outputs[character] = await getTweet(characters[character], event);
+    }
+
+    return outputs;
+}
+
 async function getMistralOutput(content){
     const data = {
         model: "mistral-small-latest",
@@ -128,3 +142,7 @@ document.getElementById("messages").addEventListener("scroll", handleScroll);
 
 // Initialize the first message
 getOpenAIMessage();
+
+const characters = {
+    'donald': 'ginger man. passionate about cornish independence'
+};
