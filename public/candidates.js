@@ -393,7 +393,7 @@ class Candidate extends Person {
         this.is_player=is_player;
     }
 
-    async getDescription() {
+    getDescription() {
         if(!('description' in this)){
             let description= hardcodedDescriptions[index];
             this.description = this.name + ' ' + description;
