@@ -367,9 +367,7 @@ class Game {
         }
         userInputElement.disabled = false;
     }
-
     async stepEliminate() {
-        const userInputElement = document.getElementById("user-input");
         userInputElement.disabled = true;
         const eliminatedCandidate = this.candidates.pop();
         const event = `It has been discovered that ${eliminatedCandidate.name} is a human and they are no longer eligible to run in this race.`;

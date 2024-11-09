@@ -21,7 +21,7 @@ let userScrolling = false;
 
 async function getTweet(character, event) {
     const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 80 characters or less responding to the event.`;
-    return getMistralOutput(prompt);
+    return getMistralOutput(prompt, 0.85);
 }
 
 async function getAllTweets(characters, event) {
@@ -52,7 +52,7 @@ async function decipherInterestsFromTweet(tweet) {
     return foundInterests;
 }
 
-async function getMistralOutput(content) {
+async function getMistralOutput(content, temperature = 0.8) {
     const data = {
         model: "mistral-small-latest",
         messages: [
@@ -61,7 +61,7 @@ async function getMistralOutput(content) {
                 content: content
             }
         ],
-        temperature: 0.8
+        temperature
     };
     return callChatEndpoint(
         data
@@ -146,7 +146,14 @@ document.getElementById("messages").addEventListener("scroll", handleScroll);
 
 // Initialize the first message
 
-function sendUserMessage() {
+function startGame() {
+    const button = document.getElementById("tweet-button");
+    button.innerText = "Tweet";
+    button.onclick = sendUserMessage;
+    window.currentGame.stepTweet();
+}
+
+async function sendUserMessage() {
     const messageInput = document.getElementById('user-input');
     const messageText = messageInput.value.trim();
 
@@ -158,6 +165,8 @@ function sendUserMessage() {
         // Clear the input field after sending the message
         messageInput.value = '';
     }
+    await window.currentGame.stepEliminate();
+    await window.currentGame.stepTweet();
 }
 
 // Function to create and add the message (tweet) to the messages box
