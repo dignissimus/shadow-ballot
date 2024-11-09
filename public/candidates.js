@@ -537,6 +537,9 @@ class Game {
         const eliminatedCandidate = this.candidates[eliminatedCandidateIndex];
         this.candidates.splice(eliminatedCandidateIndex, 1);
         const event = `The Presidential robo-candidates have come to the conclusion that ${eliminatedCandidate.name} is a human. ${eliminatedCandidate.name} has now been exiled and they are no longer eligible to run in this race.`;
+        if(eliminatedCandidate.name == 'Sally Bitstone'){
+            showGameStatus('lose');
+        }
         addSystemMessage(event);
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
