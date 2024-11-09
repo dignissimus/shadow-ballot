@@ -289,7 +289,7 @@ const EVENTS = [
 const NUMBER_OF_CITIZENS = 10;
 
 // Number of non-human candidates
-const NUMBER_OF_CANDIDATES = 5;
+const NUMBER_OF_CANDIDATES = 3;
 
 class Person {
     constructor(name) {
@@ -329,6 +329,11 @@ class Citizen extends Person {
                 numProbsUsed: 1          // Start with a single probability weight
             };
         }
+    }
+
+    getDescription() {
+        const topInterests = this.interests.sort((interest) => -interest[1]).slice(0, 5).map((interest) => interest[0])
+        return `'${topInterests.join(", ")}'`;
     }
 
     updateAverageProbability(inputInterests, candidate) {
@@ -429,9 +434,6 @@ sampleCitizenNames = (count) => sample(CITIZEN_NAMES, count);
 
 class Game {
     constructor() {
-        this.citizens = new Person(
-
-        )
         this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests()));
         this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name));
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
@@ -446,7 +448,11 @@ class Game {
             const candidateResponse = await getTweet(await candidate.getDescription(), event);
             addMessage(candidate.name, candidateResponse);
         }
-        userInputElement.disabled = false;
+        sample(this.citizens, 2).map( async (citizen) => {
+            const citizenComment = await getCitizenTweet(await citizen.getDescription(), event);
+            addMessage(`[BITIZEN] ${citizen.name}`, citizenComment);
+            userInputElement.disabled = false;
+        });
     }
 
     async stepEliminate() {
