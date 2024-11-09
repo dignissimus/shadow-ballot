@@ -300,9 +300,10 @@ class Person {
 class Citizen extends Person {
     constructor(name, interests = []) {
         super(name);
+        this.name = name;
         this.interests = interests;     // Array to store interests
         this.thoughts = [];
-
+        this.probabilities = {};  // Dictionary mapping candidate names to { currentProbability, numProbsUsed }
     }
 
     addThought(thought) {
@@ -320,11 +321,59 @@ class Citizen extends Person {
     getInterests() {
         return this.interests;
     }
+
+    _initializeCandidate(candidate) {
+        if (!(candidate in this.probabilities)) {
+            this.probabilities[candidate] = {
+                currentProbability: 0.5, // Default probability
+                numProbsUsed: 1          // Start with a single probability weight
+            };
+        }
+    }
+
+    updateAverageProbability(inputInterests, candidate) {
+        // Ensure the candidate exists in the probabilities dictionary
+        this._initializeCandidate(candidate);
+
+        // Filter interests that match the input interests
+        const matchingInterests = this.interests.filter(pair => inputInterests.includes(pair[0]));
+
+        // Calculate the total probability of the matched pairs
+        let totalProbability = 0;
+        matchingInterests.forEach(pair => {
+            totalProbability += pair[1];
+        });
+
+        const newProbsUsed = matchingInterests.length;
+
+        // Update the candidate's probability only if there are matching interests
+        if (newProbsUsed > 0) {
+            const candidateData = this.probabilities[candidate];
+            candidateData.currentProbability =
+                (candidateData.currentProbability * candidateData.numProbsUsed + totalProbability) / (candidateData.numProbsUsed + newProbsUsed);
+            candidateData.numProbsUsed += newProbsUsed;
+        }
+    }
+
+    // Get the probability for a specific candidate
+    getCandidateProbability(candidate) {
+        return this.probabilities[candidate]?.currentProbability || 0.5;  // Default to 0.5 if candidate is not present
+    }
+
 }
 
 class Candidate extends Person {
     constructor(name) {
-        super(name)
+        super(name);
+    }
+
+    async getDescription(){
+        const interests = generateInterests().map(x=>x[0]).join(',');
+        if(!('description' in this)){
+            this.description = await getMistralOutput(`Return an interesting description for a presidential candidate in a robot election. Your political interests are ${interests}`);
+        }
+
+        return this.description
     }
 }
 
@@ -339,10 +388,38 @@ function sample(names, count) {
         selectedNames.push(unusedNames[randomIndex]);
         currentIndex--;
         [unusedNames[currentIndex], unusedNames[randomIndex]] = [
-          unusedNames[randomIndex], unusedNames[currentIndex]];
+            unusedNames[randomIndex], unusedNames[currentIndex]];
         count -= 1;
     }
     return selectedNames;
+}
+
+function getRandomFloat(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+NUM_REG_INTERESTS_PER_CITIZEN = 4;
+NUM_STRONG_INTERESTS_PER_CITIZEN = 2;
+
+
+function generateInterests(){
+    const sampledStrongInterests = sample(STRONG_INTERESTS, NUM_STRONG_INTERESTS_PER_CITIZEN);
+    const sampledRegInterests = sample(REGULAR_INTERESTS, NUM_REG_INTERESTS_PER_CITIZEN);
+
+    let pairs = [];
+    for(const interest of sampledStrongInterests){
+        pairs.push([
+            interest, getRandomFloat(0, 1)
+        ]);
+    }
+
+    for(const interest of sampledRegInterests){
+        pairs.push([
+            interest, getRandomFloat(0.4, 0.6)
+        ]);
+    }
+
+    return pairs;
 }
 
 sampleCandidateNames = (count) => sample(CANDIDATE_NAMES, count);
@@ -350,8 +427,11 @@ sampleCitizenNames = (count) => sample(CITIZEN_NAMES, count);
 
 class Game {
     constructor() {
-        this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name));
-        this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Citizen(name));
+        this.citizens = new Person(
+
+        )
+        this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests()));
+        this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name));
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
     }
 
@@ -361,7 +441,7 @@ class Game {
         const event = this.getEventDescription();
         addSystemMessage(event);
         for (const candidate of this.candidates) {
-            const candidateResponse = await getTweet(candidate.name, event);
+            const candidateResponse = await getTweet(await candidate.getDescription(), event);
             addMessage(candidate.name, candidateResponse);
             await new Promise(r => setTimeout(r, 2000));
         }
@@ -382,7 +462,7 @@ class Game {
     }
 
     getEventDescription() {
-        return this.events.pop(); 
+        return this.events.pop();
     }
 
     async play() {

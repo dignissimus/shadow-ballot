@@ -20,8 +20,8 @@ let themeSet = false;
 let userScrolling = false;
 
 async function getTweet(character, event) {
-    const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 80 characters or less responding to the event.`;
-    return getMistralOutput(prompt, 0.85);
+    const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 120 characters or less responding to the event, it must be heavily dependent on your profile.`;
+    return getMistralOutput(prompt);
 }
 
 async function getAllTweets(characters, event) {
@@ -324,6 +324,8 @@ function updateProgressBarWidth(name, newPercentage) {
 const userPopularity = [
 
 ];
+
+
 
 // Example data to call the render function with
 const citizens = [
