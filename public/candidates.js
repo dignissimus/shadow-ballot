@@ -537,7 +537,9 @@ class Game {
 
             if (score > bestScore) {
                 bestIndex = index;
+                bestScore = score;
             }
+            console.log(candidate.name, score);
         }
         return bestIndex;
     }
