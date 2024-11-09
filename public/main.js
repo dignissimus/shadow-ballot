@@ -19,8 +19,21 @@ let messages = [
 let themeSet = false;
 let userScrolling = false;
 
-async function getTweet(character, event, interests) {
+async function getTweet(character, event, interests, log=[]) {
     let interestsString  = interests.join(',');
+
+    const randomNumber = Math.floor(Math.random() * 3) + 1;
+
+    const recentTweets = getRecentTweets(log);
+    console.log(log, recentTweets);
+    if(recentTweets.length > 0){
+
+        const logString = recentTweets.map(logEntry=>`${logEntry.from}: ${logEntry.content}`).join('\n');
+        const prompt = `You are a robot politician with the following profile: ${character}. There is an undercover human on twitter. Attack a random character from the list of recent tweets, accusing them of being a human: ${logString} in less than 100 characters. Be mean.`;
+        console.log(prompt);
+        return await getMistralOutput(prompt) + '❗❗';
+    }
+
     const prompt = `You are a politician with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 120 characters or less responding to the event, it must be heavily dependent on your profile. Refer to your interests (${interestsString}) and STAY IN CHARACTER (${character})`;
     return getMistralOutput(prompt);
 }
@@ -225,10 +238,12 @@ async function addMessage(name, message, game=undefined, description="", is_biti
 
         if(!is_bitizen){
             let interests = await decipherInterestsFromTweet(message, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
+            console.log(name);
+            console.log(interests);
             for (const citizen of game.citizens) {
                 citizen.updateAverageProbability(interests, name);
             }
-    
+
             let candidateScores = game.candidates.map(candidate => {
                 return {
                     'name': candidate.name,

@@ -425,6 +425,12 @@ function getRandomFloat(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+function getRecentTweets(log){
+    return log.filter(
+        message=>message['type']=='tweet'
+    ).slice(-3);
+};
+
 NUM_REG_INTERESTS_PER_CITIZEN = 3;
 NUM_STRONG_INTERESTS_PER_CITIZEN = 1;
 
@@ -474,7 +480,7 @@ class Game {
         addSystemMessage(event);
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
-                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
+                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests, this.event_log);
                 await addMessage(candidate.name, candidateResponse, this, await candidate.getDescription());
             }
         }
@@ -495,7 +501,7 @@ class Game {
         addSystemMessage(event);
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
-                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
+                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests, this.event_log);
                 await addMessage(candidate.name, candidateResponse, this, candidate.getDescription());    
             }
         }
