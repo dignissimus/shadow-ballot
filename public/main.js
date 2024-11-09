@@ -77,8 +77,7 @@ function awaitUserInput() {
     const tweetButton = document.getElementById('tweet-button');
     const oldOnclick = window.canonicalCallback;
     const promise = new Promise((resolve) => {
-        console.log("promise invoke");
-        windowcanonicalCallback.onclick = () => {
+        window.canonicalCallback.onclick = () => {
             window.canonicalCallback = oldOnclick;
             resolve(messageInput.value);
             messageInput.value = "";
