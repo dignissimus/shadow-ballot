@@ -78,10 +78,7 @@ function awaitUserInput() {
     const promise = new Promise((resolve) => {
         console.log("set callback");
         window.canonicalCallback = () => {
-            console.log("Callback happened");
             window.canonicalCallback = sendUserMessage;
-            console.log("reset");
-            messageInput.value = "";
             resolve(messageInput.value);
         };
     });

@@ -517,6 +517,7 @@ class Game {
         userInputElement.disabled = false;
         userInputElement.value = "I believe X is a human because ";
         const userInput = await awaitUserInput(); 
+        userInputElement.value = "";
         // TODO: Colour of Sally Bitstone
         await addMessage("Sally Bitstone", userInput, undefined, undefined, undefined, getRandomHexColour());
         eliminationVotes.push(userInput);
