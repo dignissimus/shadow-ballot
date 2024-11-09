@@ -19,6 +19,22 @@ let messages = [
 let themeSet = false;
 let userScrolling = false;
 
+async function getMistralOutput(content){
+    const data = {
+        model: "mistral-small-latest",
+        messages: [
+            {
+                role: "system",
+                content: content
+            }
+        ],
+        temperature: 0.8
+    };
+    return callChatEndpoint(
+        data
+    )
+}
+
 async function callChatEndpoint(data) {
     const url = "https://api.mistral.ai/v1/chat/completions";
     const response = await fetch(url, {
@@ -72,6 +88,14 @@ function displayMessage(content, role) {
 function handleScroll() {
     const messageContainer = document.getElementById("messages");
     userScrolling = messageContainer.scrollTop + messageContainer.clientHeight < messageContainer.scrollHeight;
+}
+
+function generateTweet(){
+
+}
+
+async function getMessages(){
+
 }
 
 async function sendUserMessage() {
