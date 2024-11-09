@@ -291,9 +291,14 @@ const NUMBER_OF_CITIZENS = 5;
 // Number of non-human candidates
 const NUMBER_OF_CANDIDATES = 3;
 
+function getRandomHexColor() {
+    return Math.floor(Math.random() * 360) + 1;
+}
+
 class Person {
     constructor(name) {
         this.name = name;
+        this.colour = getRandomHexColor();
     }
 }
 
@@ -383,13 +388,13 @@ class Candidate extends Person {
     constructor(name, interests, is_player=false) {
         super(name);
         this.interests = interests;
-        this.is_player=is_player
+        this.is_player=is_player;
     }
 
     async getDescription() {
         if(!('description' in this)){
             let description= hardcodedDescriptions[index];
-            this.description = description;
+            this.description = this.name + ' ' + description;
             index+=1;
         }
         return this.description;
@@ -482,8 +487,8 @@ class Game {
         this.message_log = [];
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
-                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests, this.event_log);
-                await addMessage(candidate.name, candidateResponse, this, await candidate.getDescription());
+                const candidateResponse = await getTweet(await candidate.getDescription(), event, candidate.interests, this.event_log);
+                await addMessage(candidate.name, candidateResponse, this, await candidate.getDescription(), false, candidate.colour);
             }
         }
         addSystemMessage("The bitizens are discussing on Bitter...");
@@ -507,7 +512,7 @@ class Game {
             const prompt = `You are a robot. Your name is ${candidate.name} and your description is ${candidateDescription}. Use the following hsitory and output the name of the candidate you believe is a Human and provide a one sentence justification and format this as a tweet starting with "I believe X is a human". History: ${history}`;
             const eliminationVote = await getMistralOutput(prompt);
             eliminationVotes.push(eliminationVote);
-            await addMessage(candidate.name, eliminationVote);
+            await addMessage(candidate.name, eliminationVote, undefined, undefined, undefined, candidate.colour);
         }
 
         let bestIndex = 0;
@@ -541,7 +546,7 @@ class Game {
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
                 const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests, this.event_log);
-                await addMessage(candidate.name, candidateResponse, this, candidate.getDescription());    
+                await addMessage(candidate.name, candidateResponse, this, candidate.getDescription(), undefined, candidate.colour);    
             }
         }
     }

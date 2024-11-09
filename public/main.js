@@ -26,10 +26,10 @@ async function getTweet(character, event, interests, log = []) {
 
     const recentTweets = getRecentTweets(log);
     console.log(log, recentTweets);
-    if (recentTweets.length > 0) {
+    if (randomNumber == 1 && recentTweets.length > 0) {
 
         const logString = recentTweets.map(logEntry => `${logEntry.from}: ${logEntry.content}`).join('\n');
-        const prompt = `You are a robot politician with the following profile: ${character}. There is an undercover human on twitter. Attack a random character from the list of recent tweets, accusing them of being a human: ${logString} in less than 100 characters. Be mean.`;
+        const prompt = `You are a robot politician with the following profile: ${character}. There is an undercover human on twitter. Attack a character you suspect from the list of recent tweets, accusing them of being a human: ${logString} in less than 100 characters. Be mean.`;
         console.log(prompt);
         return await getMistralOutput(prompt) + '❗❗';
     }
@@ -38,8 +38,9 @@ async function getTweet(character, event, interests, log = []) {
     return getMistralOutput(prompt);
 }
 
-async function getCitizenTweet(character, event) {
-    const prompt = `You are a citizen with the following profile: ${character}. You are responding to the following event: ${event}. Return a tweet of 120 characters or less responding to the event, it must be heavily dependent on your profile and you must say what your interests are and how a presidential candidate should respond to this event to satisfy your interests.`;
+async function getCitizenTweet(character, event_log) {
+    const eventLogString = getRecentTweets(event_log).join('\n \n');
+    const prompt = `You are a citizen with the following profile: ${character}. You are responding to the following tweets and events: ${eventLogString}. Return a tweet of 100 characters or less responding to the events, it must be heavily dependent on your profile and you must say what your interests are and how a presidential candidate should respond to this event to satisfy your interests.`;
     return getMistralOutput(prompt);
 }
 
@@ -190,12 +191,23 @@ async function sendUserMessage() {
         // Call the function to add the message resembling a tweet
         await addMessage('You', messageText, window.currentGame);
     }
+
+    const userInputElement = document.getElementById("user-input");
+
+    await Promise.all(
+        sample(window.currentGame.citizens, 2).map(async (citizen) => {
+            const citizenDescription = await citizen.getDescription();
+            const citizenComment = await getCitizenTweet(citizenDescription, window.currentGame.event_log);
+            await addMessage(`[BITIZEN] ${citizen.name}`, citizenComment, this, citizenDescription, true, citizen.colour);
+            userInputElement.disabled = false;
+        })
+    );
+
     await window.currentGame.stepEliminate();
     await window.currentGame.stepTweet();
 }
 
-// Function to create and add the message (tweet) to the messages box
-async function addMessage(name, message, game = undefined, description = "", is_bitizen = false) {
+async function addMessage(name, message, game = undefined, description = "", is_bitizen = false, color = 'gray') {
     // Get the messages container
     const messagesContainer = document.getElementById('messages');
 
@@ -205,11 +217,12 @@ async function addMessage(name, message, game = undefined, description = "", is_
 
     const citizenId = `progress-bar-${name.replace(/\s+"'/g, '-').toLowerCase()}`;
     if (description) globalDescription[citizenId + "-tweet"] = description;
-    // Set the message content (with user icon and name)
+
+    // Set the message content (with user icon and name) with color applied to the avatar icon
     messageElement.innerHTML = `
         <!-- User Avatar -->
         <div class="flex-shrink-0">
-            <span class="text-3xl text-gray-500">👤</span>
+            <span class="text-3xl" style="filter: hue-rotate(${color}deg) brightness(1.2) saturate(4);">👤</span>
         </div>
 
         <!-- Message Content -->
@@ -265,6 +278,7 @@ async function addMessage(name, message, game = undefined, description = "", is_
         }
     }
 }
+
 
 
 function showToast(message, bgColor = 'bg-blue-500') {
