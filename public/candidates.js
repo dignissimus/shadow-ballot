@@ -470,7 +470,7 @@ function calculateMean(numbers) {
 
 class Game {
     constructor() {
-        const player = new Candidate('You', [], true);
+        const player = new Candidate('Sally Bitstone', [], true);
 
         this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests(NUM_STRONG_INTERESTS_PER_CITIZEN, NUM_REG_INTERESTS_PER_CITIZEN)));
         this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name, generateInterests(3,2))).concat([player]);
@@ -498,12 +498,13 @@ class Game {
     }
 
     async findCandidateToEliminate() {
-        const history = this.message_log.join("\n");
+        const history = this.message_log.join("\n\n");
         const eliminationVotes = [];
         for (const candidate of this.candidates) {
             if (candidate.is_player) continue;
             const candidateDescription = await candidate.getDescription();
             const prompt = `You are a robot. Your name is ${candidate.name} and your description is ${candidateDescription}. Use the following hsitory and output the name of the candidate you believe is a Human and provide a one sentence justification and format this as a tweet starting with "I believe X is a human". History: ${history}`;
+            console.log(prompt);
             const eliminationVote = await getMistralOutput(prompt);
             eliminationVotes.push(eliminationVote);
             await addMessage(candidate.name, eliminationVote, undefined, undefined, undefined, candidate.colour);

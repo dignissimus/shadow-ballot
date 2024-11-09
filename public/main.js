@@ -189,7 +189,7 @@ async function sendUserMessage() {
         // Clear the input field after sending the message
         messageInput.value = '';
         // Call the function to add the message resembling a tweet
-        await addMessage('You', messageText, window.currentGame);
+        await addMessage('Sally Bitstone', messageText, window.currentGame);
     }
 
     const userInputElement = document.getElementById("user-input");
@@ -440,3 +440,28 @@ const userPopularity = [
 // Call the function to render the data with animation
 
 // renderProgressBa rs(citizens);
+
+// Function to show the modal with custom message and title
+function showGameStatus(status) {
+    const modal = document.getElementById("game-status-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const modalMessage = document.getElementById("modal-message");
+
+    // Set the title and message based on the game status
+    if (status === "win") {
+        modalTitle.textContent = "Congratulations!";
+        modalMessage.textContent = "You have won the game! 🎉";
+    } else if (status === "lose") {
+        modalTitle.textContent = "Game Over";
+        modalMessage.textContent = "You lost the game. Try again!";
+    }
+
+    // Display the modal
+    modal.classList.remove("hidden");
+}
+
+// Function to close the modal
+function closeModal() {
+    const modal = document.getElementById("game-status-modal");
+    modal.classList.add("hidden");
+}
