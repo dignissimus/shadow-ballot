@@ -18,7 +18,7 @@ const CANDIDATE_NAMES = [
     `Ben Dover`,
     `Selma Answers`,
     `Dusty Trailblazer`,
-    `Gracie Period`,
+    `Gracie`,
     `Alma Mater`,
     `Benny Factor`,
     `Eva Lastword`,
