@@ -72,6 +72,22 @@ async function decipherInterestsFromTweet(tweet, possibleInterests) {
     return foundInterests;
 }
 
+function awaitUserInput() {
+    const messageInput = document.getElementById('user-input');
+    const tweetButton = document.getElementById('tweet-button');
+    const oldOnclick = window.canonicalCallback;
+    const promise = new Promise((resolve) => {
+        console.log("promise invoke");
+        tweetButton.onclick = () => {
+            window.canonicalCallback = oldOnclick;
+            resolve(messageInput.value);
+            messageInput.value = "";
+        };
+    });
+    
+    return promise;
+}
+
 async function getMistralOutput(content, temperature = 0.8) {
     const data = {
         model: "mistral-small-latest",
@@ -176,9 +192,15 @@ document.getElementById("messages").addEventListener("scroll", handleScroll);
 function startGame() {
     const button = document.getElementById("tweet-button");
     button.innerText = "Tweet";
-    button.onclick = sendUserMessage;
+    window.canonicalCallback = sendUserMessage;
     window.currentGame.stepTweet();
 }
+
+window.canonicalCallback = startGame;
+window.callback = () => {
+    window.canonicalCallback();
+};
+
 
 async function sendUserMessage() {
     const messageInput = document.getElementById('user-input');

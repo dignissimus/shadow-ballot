@@ -295,6 +295,8 @@ function getRandomHexColor() {
     return Math.floor(Math.random() * 360) + 1;
 }
 
+const getRandomHexColour = getRandomHexColor;
+
 class Person {
     constructor(name) {
         this.name = name;
@@ -510,6 +512,16 @@ class Game {
             await addMessage(candidate.name, eliminationVote, undefined, undefined, undefined, candidate.colour);
         }
 
+        addSystemMessage("Who will you accuse of being the Human?");
+        const userInputElement = document.getElementById("user-input");
+        userInputElement.disabled = false;
+        userInputElement.value = "I believe X is a human because ";
+        const userInput = await awaitUserInput(); 
+        // TODO: Colour of Sally Bitstone
+        await addMessage("Sally Bitstone", userInput, undefined, undefined, undefined, getRandomHexColour());
+        eliminationVotes.push(userInput);
+        userInputElement.disabled = true;
+
         let bestIndex = 0;
         let bestScore = 0;
 
@@ -532,7 +544,7 @@ class Game {
     async stepEliminate() {
         const userInputElement = document.getElementById("user-input");
         userInputElement.disabled = true;
-        addSystemMessage("The Presidential candidates intervene...");
+        addSystemMessage("The Presidential candidates convene...");
         const eliminatedCandidateIndex = await this.findCandidateToEliminate();
         const eliminatedCandidate = this.candidates[eliminatedCandidateIndex];
         this.candidates.splice(eliminatedCandidateIndex, 1);

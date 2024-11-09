@@ -46,10 +46,10 @@
 
             <!-- Input Area (Post a Tweet) -->
             <div class="mt-6">
-                <input disabled type="text" id="user-input" placeholder="What's happening?" 
+                <input disabled type="text" value="" id="user-input" placeholder="What's happening?" 
                        class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:border-0 disabled:bg-blue-gray-50" 
-                       onkeydown="if(event.key === 'Enter') sendUserMessage()" />
-                <button id="tweet-button" onclick="startGame()" 
+                       onkeydown="if(event.key === 'Enter') callback()" />
+                <button id="tweet-button" onclick="callback()" 
                         class="mt-4 px-6 py-2 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     Start game
                 </button>
