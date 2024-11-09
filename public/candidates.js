@@ -286,7 +286,7 @@ const EVENTS = [
     "A shipment of marshmallow fluff goes airborne, dusting the city in a sticky, sugary coating.",
 ];
 
-const NUMBER_OF_CITIZENS = 10;
+const NUMBER_OF_CITIZENS = 5;
 
 // Number of non-human candidates
 const NUMBER_OF_CANDIDATES = 3;
@@ -374,10 +374,10 @@ class Candidate extends Person {
         super(name);
     }
 
-    async getDescription(){
-        const interests = generateInterests().map(x=>x[0]).join(',');
-        if(!('description' in this)){
-            this.description = await getMistralOutput(`Return an interesting description for a presidential candidate in a robot election. Your political interests are ${interests}`);
+    async getDescription() {
+        const interests = generateInterests(3, 2).map(x => x[0]).join(',');
+        if (!('description' in this)) {
+            this.description = await getMistralOutput(`Return an interesting description for a presidential candidate in a robot election. Your political interests are ${interests}. Explicitly refer to these.`);
         }
 
         return this.description
@@ -405,24 +405,24 @@ function getRandomFloat(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-NUM_REG_INTERESTS_PER_CITIZEN = 4;
-NUM_STRONG_INTERESTS_PER_CITIZEN = 2;
+NUM_REG_INTERESTS_PER_CITIZEN = 20;
+NUM_STRONG_INTERESTS_PER_CITIZEN = 20;
 
 
-function generateInterests(){
-    const sampledStrongInterests = sample(STRONG_INTERESTS, NUM_STRONG_INTERESTS_PER_CITIZEN);
-    const sampledRegInterests = sample(REGULAR_INTERESTS, NUM_REG_INTERESTS_PER_CITIZEN);
+function generateInterests(num_strong, num_reg) {
+    const sampledStrongInterests = sample(STRONG_INTERESTS, num_strong);
+    const sampledRegInterests = sample(REGULAR_INTERESTS, num_reg);
 
     let pairs = [];
-    for(const interest of sampledStrongInterests){
+    for (const interest of sampledStrongInterests) {
         pairs.push([
             interest, getRandomFloat(0, 1)
         ]);
     }
 
-    for(const interest of sampledRegInterests){
+    for (const interest of sampledRegInterests) {
         pairs.push([
-            interest, getRandomFloat(0.4, 0.6)
+            interest, getRandomFloat(0.6, 0.8)
         ]);
     }
 
@@ -432,9 +432,14 @@ function generateInterests(){
 sampleCandidateNames = (count) => sample(CANDIDATE_NAMES, count);
 sampleCitizenNames = (count) => sample(CITIZEN_NAMES, count);
 
+function calculateMean(numbers) {
+    const total = numbers.reduce((sum, num) => sum + num, 0);
+    return total / numbers.length;
+}
+
 class Game {
     constructor() {
-        this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests()));
+        this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests(NUM_STRONG_INTERESTS_PER_CITIZEN, NUM_REG_INTERESTS_PER_CITIZEN)));
         this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name));
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
     }
@@ -447,12 +452,40 @@ class Game {
         for (const candidate of this.candidates) {
             const candidateResponse = await getTweet(await candidate.getDescription(), event);
             addMessage(candidate.name, candidateResponse);
+
+            let interests = await decipherInterestsFromTweet(candidateResponse, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
+            for (const citizen of this.citizens) {
+                citizen.updateAverageProbability(interests, candidate.name);
+            }
         }
         sample(this.citizens, 2).map( async (citizen) => {
             const citizenComment = await getCitizenTweet(await citizen.getDescription(), event);
             addMessage(`[BITIZEN] ${citizen.name}`, citizenComment);
             userInputElement.disabled = false;
         });
+
+
+        let candidateScores = this.candidates.map(candidate => {
+            return {
+                'name': candidate.name,
+                'mean_score': Math.exp(50 * calculateMean(this.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name))))
+            }
+        });
+
+        console.log(candidateScores);
+
+        let totalVote = candidateScores.reduce((acc, candidate) => acc + candidate['mean_score'], 0);
+        let candidatesToDisplay = candidateScores.map(candidate => {
+            return {
+                'name': candidate['name'],
+                'percentage': Math.round((candidate['mean_score'] / totalVote) * 100)
+            };
+        });
+
+        console.log(candidatesToDisplay);
+
+        renderProgressBars(candidatesToDisplay);
+        userInputElement.disabled = false;
     }
 
     async stepEliminate() {

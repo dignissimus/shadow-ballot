@@ -38,7 +38,7 @@ async function getAllTweets(characters, event) {
     return outputs;
 }
 
-async function decipherInterestsFromTweet(tweet) {
+async function decipherInterestsFromTweet(tweet, possibleInterests) {
     // Queries Mistral for which of the interests in possibleInterests are present in the tweet
     const prompt = "This is a tweet from a presidential candidate:\n" 
         + tweet + 
@@ -73,18 +73,25 @@ async function getMistralOutput(content, temperature = 0.8) {
     )
 }
 
-let lastCallTimestamp = 0;
+let requestTimestamps = [];
 
 async function callChatEndpoint(data) {
     const url = "https://api.mistral.ai/v1/chat/completions";
-
     const now = Date.now();
-    const timeElapsed = now - lastCallTimestamp;
-    const delay = Math.max(0, 400 - timeElapsed); // 200 ms minimum delay between calls (5 calls per second)
+    
+    // Filter timestamps to keep only the ones in the last second
+    requestTimestamps = requestTimestamps.filter(timestamp => now - timestamp < 1000);
 
-    if (delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+    // If there have been 5 requests in the last second, wait for 1 second before making the next request
+    if (requestTimestamps.length >= 5) {
+        const waitTime = 1000 - (now - requestTimestamps[requestTimestamps.length - 1]);
+        console.log(`Rate limit exceeded. Waiting for ${waitTime}ms`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
     }
+
+    // Add the current timestamp to the list of requests
+    requestTimestamps.push(now);
+
     const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -333,14 +340,6 @@ const userPopularity = [
 
 
 // Example data to call the render function with
-const citizens = [
-    { name: "John Doe", percentage: 75 },
-    { name: "Jane Smith", percentage: 45 },
-    { name: "Charlie Brown", percentage: 30 },
-    { name: "Lisa White", percentage: 60 },
-    { name: "Tom Green", percentage: 80 }
-];
-
 // Call the function to render the data with animation
 
-renderProgressBars(citizens);
+// renderProgressBa rs(citizens);
