@@ -216,6 +216,7 @@ async function runEvent(event) {
         addMessage(name, allTweets[name]);
     }
 }
+
 function renderProgressBars(citizens) {
     const container = document.getElementById("progress-tracking");
 
@@ -239,9 +240,12 @@ function renderProgressBars(citizens) {
         // Choose a color based on the index or another logic
         const colorClass = colorClasses[index % colorClasses.length];
 
+        // Create a unique ID for each citizen based on their name
+        const citizenId = `progress-bar-${name.replace(/\s+/g, '-').toLowerCase()}`;
+
         // Create HTML for each citizen's progress bar
         const progressHTML = `
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-6" id="${citizenId}">
                 <span class="text-gray-700 font-medium">${name}</span>
                 <div class="w-3/4">
                     <div class="relative pt-1">
@@ -268,6 +272,34 @@ function renderProgressBars(citizens) {
 
     // Scroll to the bottom of the container after content is rendered
     container.scrollTop = container.scrollHeight;
+}
+
+function updateCitizensAndRender(citizens, newValues) {
+    // Update the citizens' progress values based on newValues
+    citizens.forEach((citizen, index) => {
+        const newValue = newValues[index];
+        if (newValue !== undefined) {
+            citizen.percentage = newValue;
+        }
+    });
+
+    // Re-render the progress bars with the updated values
+    renderProgressBars(citizens);
+}
+
+function updateProgressBarWidth(name, newPercentage) {
+    // Generate the citizen's ID
+    const citizenId = `progress-bar-${name.replace(/\s+/g, '-').toLowerCase()}`;
+
+    // Check if the element exists
+    const progressBarElement = document.getElementById(citizenId);
+    if (progressBarElement) {
+        // Find the inner div that represents the progress bar and update its width
+        const progressBar = progressBarElement.querySelector('.h-2\\.5');
+        if (progressBar) {
+            progressBar.style.width = `${newPercentage}%`;
+        }
+    }
 }
 
 // Example data to call the render function with
