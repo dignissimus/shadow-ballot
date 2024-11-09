@@ -75,12 +75,14 @@ async function decipherInterestsFromTweet(tweet, possibleInterests) {
 function awaitUserInput() {
     const messageInput = document.getElementById('user-input');
     const tweetButton = document.getElementById('tweet-button');
-    const oldOnclick = window.canonicalCallback;
     const promise = new Promise((resolve) => {
-        window.canonicalCallback.onclick = () => {
-            window.canonicalCallback = oldOnclick;
-            resolve(messageInput.value);
+        console.log("set callback");
+        window.canonicalCallback = () => {
+            console.log("Callback happened");
+            window.canonicalCallback = sendUserMessage;
+            console.log("reset");
             messageInput.value = "";
+            resolve(messageInput.value);
         };
     });
     
@@ -491,3 +493,7 @@ function closeModal() {
     const modal = document.getElementById("game-status-modal");
     modal.classList.add("hidden");
 }
+
+
+const messageInput = document.getElementById('user-input');
+messageInput.value = "";
