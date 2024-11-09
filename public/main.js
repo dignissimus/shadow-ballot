@@ -141,8 +141,73 @@ async function sendUserMessage() {
 document.getElementById("messages").addEventListener("scroll", handleScroll);
 
 // Initialize the first message
-getOpenAIMessage();
-
 const characters = {
     'donald': 'ginger man. passionate about cornish independence'
 };
+
+function sendUserMessage() {
+    const messageInput = document.getElementById('user-input');
+    const messageText = messageInput.value.trim();
+
+    // Only send the message if it is not empty
+    if (messageText) {
+        // Call the function to add the message resembling a tweet
+        addMessage('User', messageText);
+        
+        // Clear the input field after sending the message
+        messageInput.value = '';
+    }
+}
+
+// Function to create and add the message (tweet) to the messages box
+function addMessage(name, message) {
+    // Get the messages container
+    const messagesContainer = document.getElementById('messages');
+
+    // Create a new message element
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('flex', 'items-start', 'space-x-4', 'bg-white', 'p-4', 'rounded-lg', 'border', 'border-gray-200', 'shadow-sm');
+
+    // Set the message content (with user icon and name)
+    messageElement.innerHTML = `
+        <!-- User Avatar -->
+        <div class="flex-shrink-0">
+            <span class="text-3xl text-gray-500">👤</span>
+        </div>
+
+        <!-- Message Content -->
+        <div class="flex-grow">
+            <div class="font-semibold text-gray-900">${name}</div>
+            <div class="text-gray-700 mt-1">${message}</div>
+        </div>
+    `;
+
+    // Append the new message element to the messages container
+    messagesContainer.appendChild(messageElement);
+
+    // Scroll to the bottom of the messages container
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function addSystemMessage(message) {
+    // Get the messages container
+    const messagesContainer = document.getElementById('messages');
+
+    // Create a new system message element
+    const systemMessageElement = document.createElement('div');
+    systemMessageElement.classList.add('flex', 'items-center', 'space-x-4', 'bg-gray-200', 'p-4', 'rounded-lg', 'border', 'border-gray-300', 'shadow-sm', 'text-gray-600');
+
+    // Set the system message content (without the system icon)
+    systemMessageElement.innerHTML = `
+        <!-- System Message Content -->
+        <div class="flex-grow">
+            <div class="text-sm">${message}</div>
+        </div>
+    `;
+
+    // Append the new system message element to the messages container
+    messagesContainer.appendChild(systemMessageElement);
+
+    // Scroll to the bottom of the messages container
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
