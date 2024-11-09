@@ -203,6 +203,8 @@ async function sendUserMessage() {
         })
     );
 
+    addSystemMessage("The bitizens are discussing on Bitter...");
+
     await window.currentGame.stepEliminate();
     await window.currentGame.stepTweet();
 }

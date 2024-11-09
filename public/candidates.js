@@ -491,12 +491,6 @@ class Game {
                 await addMessage(candidate.name, candidateResponse, this, await candidate.getDescription(), false, candidate.colour);
             }
         }
-        addSystemMessage("The bitizens are discussing on Bitter...");
-        await Promise.all(sample(this.citizens, 2).map( async (citizen) => {
-            const citizenComment = await getCitizenTweet(await citizen.getDescription(), event);
-            await addMessage(`[BITIZEN] ${citizen.name}`, citizenComment, this, await citizen.getDescription(), true);
-            userInputElement.disabled = false;
-        }));
 
         addSystemMessage("What do you think about this issue?");
 
