@@ -443,7 +443,6 @@ class Game {
         for (const candidate of this.candidates) {
             const candidateResponse = await getTweet(await candidate.getDescription(), event);
             addMessage(candidate.name, candidateResponse);
-            await new Promise(r => setTimeout(r, 2000));
         }
         userInputElement.disabled = false;
     }
@@ -457,7 +456,6 @@ class Game {
         for (const candidate of this.candidates) {
             const candidateResponse = await getTweet(candidate.name, event);
             addMessage(candidate.name, candidateResponse);
-            await new Promise(r => setTimeout(r, 2000));
         }
     }
 
