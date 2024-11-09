@@ -362,6 +362,8 @@ class Citizen extends Person {
 
 }
 
+let generatedDescriptions = [];
+
 class Candidate extends Person {
     constructor(name) {
         super(name);

@@ -75,7 +75,7 @@ async function callChatEndpoint(data) {
 
     const now = Date.now();
     const timeElapsed = now - lastCallTimestamp;
-    const delay = Math.max(0, 200 - timeElapsed); // 200 ms minimum delay between calls (5 calls per second)
+    const delay = Math.max(0, 400 - timeElapsed); // 200 ms minimum delay between calls (5 calls per second)
 
     if (delay > 0) {
         await new Promise(resolve => setTimeout(resolve, delay));
