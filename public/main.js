@@ -183,7 +183,7 @@ async function sendUserMessage() {
 }
 
 // Function to create and add the message (tweet) to the messages box
-function addMessage(name, message) {
+function addMessage(name, message, description="") {
     // Get the messages container
     const messagesContainer = document.getElementById('messages');
 
@@ -191,6 +191,8 @@ function addMessage(name, message) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('flex', 'items-start', 'space-x-4', 'bg-white', 'p-4', 'rounded-lg', 'border', 'border-gray-200', 'shadow-sm');
 
+    const citizenId = `progress-bar-${name.replace(/\s+"'/g, '-').toLowerCase()}`;
+    if (description) globalDescription[citizenId + "-tweet"] = description;
     // Set the message content (with user icon and name)
     messageElement.innerHTML = `
         <!-- User Avatar -->
@@ -200,7 +202,7 @@ function addMessage(name, message) {
 
         <!-- Message Content -->
         <div class="flex-grow">
-            <div class="font-semibold text-gray-900">${name}</div>
+            <div class="font-semibold text-gray-900 underline decoration-dotted" onclick="showToast(globalDescription['${citizenId}-tweet'])">${name}</div>
             <div class="text-gray-700 mt-1">${message}</div>
         </div>
     `;
@@ -210,6 +212,21 @@ function addMessage(name, message) {
 
     // Scroll to the bottom of the messages container
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+
+function showToast(message, bgColor = 'bg-blue-500') {
+  const toast = document.createElement('div');
+  toast.className = `p-4 w-64 text-white rounded-lg shadow-lg ${bgColor} flex items-center justify-between`;
+  toast.innerHTML = `
+    <span>${message}</span>
+    <button onclick="this.parentElement.remove()" class="ml-2 text-lg">&times;</button>
+  `;
+
+  document.getElementById('toast-container').appendChild(toast);
+
+  // Auto-remove toast after 3 seconds
+  setTimeout(() => toast.remove(), 3000);
 }
 
 function addSystemMessage(message) {
@@ -249,6 +266,9 @@ async function runEvent(event) {
     }
 }
 
+
+const globalDescription = {};
+
 function renderProgressBars(citizens) {
     const container = document.getElementById("progress-tracking");
 
@@ -267,18 +287,19 @@ function renderProgressBars(citizens) {
 
     // Iterate through the citizens and render their progress bars
     citizens.forEach((citizen, index) => {
-        const { name, percentage } = citizen;
+        const { name, percentage, description } = citizen;
 
         // Choose a color based on the index or another logic
         const colorClass = colorClasses[index % colorClasses.length];
 
         // Create a unique ID for each citizen based on their name
-        const citizenId = `progress-bar-${name.replace(/\s+/g, '-').toLowerCase()}`;
+        const citizenId = `progress-bar-${name.replace(/\s+"'/g, '-').toLowerCase()}`;
+        globalDescription[citizenId] = description;
 
         // Create HTML for each citizen's progress bar
         const progressHTML = `
             <div class="flex items-center justify-between mb-6" id="${citizenId}">
-                <span class="text-gray-700 font-medium">${name}</span>
+                <button class="underline decoration-dotted text-gray-700 font-medium" onclick='showToast(globalDescription["${citizenId}"])'>${name}</button>
                 <div class="w-3/4">
                     <div class="relative pt-1">
                         <div class="flex mb-2 items-center justify-between">
