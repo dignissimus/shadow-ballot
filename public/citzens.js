@@ -66,7 +66,7 @@ class Person {
 class ChatEvent {
     constructor() {
         this.events = [];
-        this.people = {}; // Renamed from citizens to people
+        this.people = {};
     }
 
     // Method to add a plot message to the events stream

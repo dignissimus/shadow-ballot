@@ -68,8 +68,18 @@ async function getMistralOutput(content) {
     )
 }
 
+let lastCallTimestamp = 0;
+
 async function callChatEndpoint(data) {
     const url = "https://api.mistral.ai/v1/chat/completions";
+
+    const now = Date.now();
+    const timeElapsed = now - lastCallTimestamp;
+    const delay = Math.max(0, 200 - timeElapsed); // 200 ms minimum delay between calls (5 calls per second)
+
+    if (delay > 0) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
     const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -301,6 +311,10 @@ function updateProgressBarWidth(name, newPercentage) {
         }
     }
 }
+
+const userPopularity = [
+
+];
 
 // Example data to call the render function with
 const citizens = [
