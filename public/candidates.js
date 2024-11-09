@@ -471,6 +471,7 @@ class Game {
         this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name, generateInterests(3,2))).concat([player]);
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
         this.event_log = [];
+        this.message_log = [];
     }
 
     async stepTweet() {
@@ -478,6 +479,7 @@ class Game {
         userInputElement.disabled = true;
         const event = this.getEventDescription();
         addSystemMessage(event);
+        this.message_log = [];
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
                 const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests, this.event_log);
@@ -493,10 +495,42 @@ class Game {
         userInputElement.disabled = false;
     }
 
+    async findCandidateToEliminate() {
+        const history = this.message_log.join("\n");
+        const eliminationVotes = [];
+        for (const candidate of this.candidates) {
+            const candidateDescription = await candidate.getDescription();
+            const prompt = `You are a robot. Your name is ${candidate.name} and your description is ${candidateDescription}. Use the following hsitory and output the name of the candidate you believe is a Human and provide a one sentence justification and format this as a tweet starting with "I believe X is a human". History: ${history}`;
+            const eliminationVote = await getMistralOutput(prompt);
+            eliminationVotes.push(eliminationVote);
+            await addMessage(candidate.name, eliminationVote);
+        }
+
+        let bestIndex = 0;
+        let bestScore = 0;
+
+        for (index in this.candidates) {
+            const candidate = this.candidates[index];
+            let score = 0;
+            for (const eliminationVote of eliminationVotes) {
+                if (eliminationVote.toLowerCase().includes(candidate.name.toLowerCase())) {
+                    score += 1;
+                }
+            }
+
+            if (score > bestScore) {
+                bestIndex = index;
+            }
+        }
+        return bestIndex;
+    }
+
     async stepEliminate() {
         const userInputElement = document.getElementById("user-input");
         userInputElement.disabled = true;
-        const eliminatedCandidate = this.candidates.pop();
+        const eliminatedCandidateIndex = await this.findCandidateToEliminate();
+        const eliminatedCandidate = this.candidates[eliminatedCandidateIndex];
+        this.candidates.splice(eliminatedCandidateIndex, 1);
         const event = `It has been discovered that ${eliminatedCandidate.name} is a human and they are no longer eligible to run in this race.`;
         addSystemMessage(event);
         for (const candidate of this.candidates) {
