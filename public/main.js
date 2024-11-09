@@ -173,7 +173,7 @@ async function sendUserMessage() {
     // Only send the message if it is not empty
     if (messageText) {
         // Call the function to add the message resembling a tweet
-        addMessage('User', messageText);
+        await addMessage('You', messageText, window.currentGame);
 
         // Clear the input field after sending the message
         messageInput.value = '';
@@ -183,7 +183,7 @@ async function sendUserMessage() {
 }
 
 // Function to create and add the message (tweet) to the messages box
-function addMessage(name, message, description="") {
+async function addMessage(name, message, game=undefined, description="", is_bitizen=false) {
     // Get the messages container
     const messagesContainer = document.getElementById('messages');
 
@@ -212,6 +212,44 @@ function addMessage(name, message, description="") {
 
     // Scroll to the bottom of the messages container
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    if(game){
+        game.event_log.push(
+            {
+                type: 'tweet',
+                from: name,
+                content: message
+            }
+        );
+
+
+        if(!is_bitizen){
+            let interests = await decipherInterestsFromTweet(message, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
+            for (const citizen of game.citizens) {
+                citizen.updateAverageProbability(interests, name);
+            }
+    
+            let candidateScores = game.candidates.map(candidate => {
+                return {
+                    'name': candidate.name,
+                    'mean_score': calculateMean(game.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name)))
+                }
+            });
+    
+            let totalVote = candidateScores.reduce((acc, candidate) => acc + candidate['mean_score'], 0);
+            let candidatesToDisplay = candidateScores.map(candidate => {
+                return {
+                    'name': candidate['name'],
+                    'percentage': Math.round((candidate['mean_score'] / totalVote) * 100)
+                };
+            });
+    
+            console.log(candidatesToDisplay);
+            console.log(game.candidates);
+    
+            renderProgressBars(candidatesToDisplay);
+        }
+    }
 }
 
 
@@ -229,7 +267,7 @@ function showToast(message, bgColor = 'bg-blue-500') {
   setTimeout(() => toast.remove(), 3000);
 }
 
-function addSystemMessage(message) {
+function addSystemMessage(message, game) {
     // Get the messages container
     const messagesContainer = document.getElementById('messages');
 
@@ -250,6 +288,12 @@ function addSystemMessage(message) {
 
     // Scroll to the bottom of the messages container
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    window.currentGame.event_log.push(
+        {
+            type: 'system',
+            content: message
+        }
+    );
 }
 
 const characters = {
@@ -262,7 +306,7 @@ async function runEvent(event) {
     addSystemMessage(event);
 
     for (const name in allTweets) {
-        addMessage(name, allTweets[name]);
+        await addMessage(name, allTweets[name]);
     }
 }
 

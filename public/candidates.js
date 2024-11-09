@@ -464,6 +464,7 @@ class Game {
         this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests(NUM_STRONG_INTERESTS_PER_CITIZEN, NUM_REG_INTERESTS_PER_CITIZEN)));
         this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name, generateInterests(3,2))).concat([player]);
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
+        this.event_log = [];
     }
 
     async stepTweet() {
@@ -474,42 +475,15 @@ class Game {
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
                 const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
-                addMessage(candidate.name, candidateResponse, await candidate.getDescription());
-    
-                let interests = await decipherInterestsFromTweet(candidateResponse, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
-                for (const citizen of this.citizens) {
-                    citizen.updateAverageProbability(interests, candidate.name);
-                }
+                await addMessage(candidate.name, candidateResponse, this, await candidate.getDescription());
             }
         }
         sample(this.citizens, 2).map( async (citizen) => {
             const citizenComment = await getCitizenTweet(await citizen.getDescription(), event);
-            addMessage(`[BITIZEN] ${citizen.name}`, citizenComment, await citizen.getDescription());
+            await addMessage(`[BITIZEN] ${citizen.name}`, citizenComment, this, await citizen.getDescription(), true);
             userInputElement.disabled = false;
         });
 
-
-        let candidateScores = this.candidates.map(candidate => {
-            return {
-                'name': candidate.name,
-                'mean_score': calculateMean(this.citizens.map((citizen) => citizen.getCandidateProbability(candidate.name)))
-            }
-        });
-
-        console.log(candidateScores);
-
-        let totalVote = candidateScores.reduce((acc, candidate) => acc + candidate['mean_score'], 0);
-        let candidatesToDisplay = candidateScores.map(candidate => {
-            return {
-                'name': candidate['name'],
-                'percentage': Math.round((candidate['mean_score'] / totalVote) * 100)
-            };
-        });
-
-        console.log(candidatesToDisplay);
-        console.log(this.candidates);
-
-        renderProgressBars(candidatesToDisplay);
         userInputElement.disabled = false;
     }
 
@@ -522,7 +496,7 @@ class Game {
         for (const candidate of this.candidates) {
             if(!candidate.is_player){
                 const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
-                addMessage(candidate.name, candidateResponse, candidate.getDescription());    
+                await addMessage(candidate.name, candidateResponse, this, candidate.getDescription());    
             }
         }
     }
