@@ -380,16 +380,19 @@ let hardcodedDescriptions = [
 let index = 0;
 
 class Candidate extends Person {
-    constructor(name, interests) {
+    constructor(name, interests, is_player=false) {
         super(name);
         this.interests = interests;
+        this.is_player=is_player
     }
 
     async getDescription() {
-        const interests = generateInterests(3, 2).map(x => x[0]).join(',');
-        let description= hardcodedDescriptions[index];
-        index+=1;
-        return description;
+        if(!('description' in this)){
+            let description= hardcodedDescriptions[index];
+            this.description = description;
+            index+=1;
+        }
+        return this.description;
     }
 
     async serialise() {
@@ -456,8 +459,10 @@ function calculateMean(numbers) {
 
 class Game {
     constructor() {
+        const player = new Candidate('You', [], true);
+
         this.citizens = sampleCitizenNames(NUMBER_OF_CITIZENS).map((name) => new Citizen(name, generateInterests(NUM_STRONG_INTERESTS_PER_CITIZEN, NUM_REG_INTERESTS_PER_CITIZEN)));
-        this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name, generateInterests(3,2)));
+        this.candidates = sampleCandidateNames(NUMBER_OF_CANDIDATES).map((name) => new Candidate(name, generateInterests(3,2))).concat([player]);
         this.events = sample(EVENTS, NUMBER_OF_CANDIDATES);
     }
 
@@ -467,12 +472,14 @@ class Game {
         const event = this.getEventDescription();
         addSystemMessage(event);
         for (const candidate of this.candidates) {
-            const candidateResponse = await getTweet(await candidate.getDescription(), event, candidate.interests);
-            addMessage(candidate.name, candidateResponse);
-
-            let interests = await decipherInterestsFromTweet(candidateResponse, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
-            for (const citizen of this.citizens) {
-                citizen.updateAverageProbability(interests, candidate.name);
+            if(!candidate.is_player){
+                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
+                addMessage(candidate.name, candidateResponse, await candidate.getDescription());
+    
+                let interests = await decipherInterestsFromTweet(candidateResponse, REGULAR_INTERESTS.concat(STRONG_INTERESTS));
+                for (const citizen of this.citizens) {
+                    citizen.updateAverageProbability(interests, candidate.name);
+                }
             }
         }
         sample(this.citizens, 2).map( async (citizen) => {
@@ -513,8 +520,10 @@ class Game {
         const event = `It has been discovered that ${eliminatedCandidate.name} is a human and they are no longer eligible to run in this race.`;
         addSystemMessage(event);
         for (const candidate of this.candidates) {
-            const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
-            addMessage(candidate.name, candidateResponse);
+            if(!candidate.is_player){
+                const candidateResponse = await getTweet(candidate.getDescription(), event, candidate.interests);
+                addMessage(candidate.name, candidateResponse, candidate.getDescription());    
+            }
         }
     }
 
